@@ -36,3 +36,12 @@ $ cnpm i bootstrap style-components --save
 ** style-components : 自定义样式
 
 
+### 安装图标库
+https://fontawesome.com/icon
+** @fortawesome/fontawesome-svg-core ： 核心文件需要安装
+** @fontawesome/react-fontawesome ： react风格
+** @fontawesome/free-solid-svg-icons :
+** prop-types
+
+cnpm i @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/react-fontawesome --save
+
