@@ -30,10 +30,15 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
   const closeFn = () => {
     setEditItem(false)
     setValue('')
+
+    const currentFile = files.find((file) => file.id === editItem)
+    if (currentFile && currentFile.isNew) {
+      deleteFile(editItem)
+    }
   }
   // 键盘的事件操作
   useEffect(() => {
-    if (enterPressed && editItem) {
+    if (enterPressed && editItem && value.trim()) {
       saveFile(editItem, value)
       closeFn()
     }
@@ -42,11 +47,26 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
     }
   }, [escPressed, editItem, enterPressed])
 
+  useEffect(() => {
+    const newFile = files.find((item) => item.isNew)
+    if (newFile) {
+      setEditItem(newFile.id)
+      setValue(newFile.title)
+    }
+  }, [files])
+  // 当页面存在新建，未保存情况下又操作其他标题编辑
+  useEffect(() => {
+    const newFile = files.find((file) => file.isNew)
+    if (newFile && editItem !== newFile.id) {
+      // 此时就说嘛我们本意新增一个文件，但是没有将新建文件操作完成就又去点击了其他文件项
+      deleteFile(newFile.id)
+    }
+  }, [editItem])
   return (
     <GroupUl>
       {files.map((file) => (
         <li className="list-group-item d-flex align-items-center" key={file.id}>
-          {file.id !== editItem && (
+          {file.id !== editItem && !file.isNew && (
             <>
               <span className="col-1">
                 <FontAwesomeIcon icon={faFileAlt}></FontAwesomeIcon>
@@ -55,6 +75,7 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
                 className="col-8"
                 onClick={() => {
                   editFile(file.id)
+                  closeFn()
                 }}
               >
                 {file.title}
@@ -73,7 +94,7 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
               </span>
             </>
           )}
-          {file.id === editItem && (
+          {(file.id === editItem || file.isNew) && (
             <>
               <input
                 className="col-10"

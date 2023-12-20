@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { v4 } from 'uuid'
 import styled from 'styled-components'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import SearchFile from './components/SearchFiles'
@@ -9,6 +10,7 @@ import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import TabList from './components/TabList'
 import SimpleMDE from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
+import { mapArr, objToArr } from './utils/helper'
 // 自定义左侧容器
 let LeftDiv = styled.div.attrs({
   className: 'col-3 left-panel',
@@ -75,8 +77,9 @@ function App() {
   const closeFile = (id) => {
     let retOpen = openIds.filter((item) => item !== id)
     setOpenIds(retOpen)
-    if (retOpen.length > 0) setActiveId(retOpen[0])
-    else setActiveId([])
+    if (retOpen.length > 0 && activeId === id) setActiveId(retOpen[0])
+    else if (retOpen.length > 0 && activeId !== id) setActiveId(activeId)
+    else setActiveId('')
   }
   // 04 当文件内容更新时候
   const changeFile = (id, value) => {
@@ -115,10 +118,25 @@ function App() {
     const newFiles = files.map((file) => {
       if (file.id === id) {
         file.title = newTitle
+        file.isNew = false
       }
       return file
     })
     setFiles(newFiles)
+  }
+
+  // 08 新建操作
+  const createFile = () => {
+    const newId = v4()
+    let newFile = {
+      id: newId,
+      title: '',
+      isNew: true,
+      body: '## 初始化内容',
+      createTime: new Date().getTime(),
+    }
+    let flag = files.find((file) => file.isNew)
+    !flag && setFiles([...files, newFile])
   }
   return (
     <div className="App container-fluid g-0">
@@ -132,8 +150,12 @@ function App() {
             saveFile={reName}
           />
           <div className="btn-list">
-            <ButtonItem title={'新增'} icon={faPlus} />
-            <ButtonItem title={'导入'} icon={faFileImport} />
+            <ButtonItem title={'新增'} icon={faPlus} btnClick={createFile} />
+            <ButtonItem
+              title={'导入'}
+              icon={faFileImport}
+              btnClick={createFile}
+            />
           </div>
         </LeftDiv>
         <RightDiv>

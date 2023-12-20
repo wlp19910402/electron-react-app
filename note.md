@@ -48,3 +48,6 @@ cnpm i @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fort
 ### 安装编辑器
 cnpm i react-simplemde-editor easymde --save
 
+### 过滤数据
+将数据改成Map对象
+
