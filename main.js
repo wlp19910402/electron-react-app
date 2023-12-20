@@ -31,6 +31,8 @@ app
     })
     //子模块使用electron
     remote.enable(mainWindow.webContents)
+    //开发打开控制台
+    isDev && mainWindow.webContents.openDevTools()
   })
   .catch((err) => {
     console.log(err)

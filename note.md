@@ -45,3 +45,6 @@ https://fontawesome.com/icon
 
 cnpm i @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/react-fontawesome --save
 
+### 安装编辑器
+cnpm i react-simplemde-editor easymde --save
+
