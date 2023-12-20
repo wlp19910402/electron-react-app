@@ -31,10 +31,10 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
     setEditItem(false)
     setValue('')
 
-    const currentFile = files.find((file) => file.id === editItem)
-    if (currentFile && currentFile.isNew) {
-      deleteFile(editItem)
-    }
+    // const currentFile = files.find((file) => file.id === editItem)
+    // if (currentFile && currentFile.isNew) {
+    //   deleteFile(editItem)
+    // }
   }
   // 键盘的事件操作
   useEffect(() => {
@@ -57,7 +57,7 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
   // 当页面存在新建，未保存情况下又操作其他标题编辑
   useEffect(() => {
     const newFile = files.find((file) => file.isNew)
-    if (newFile && editItem !== newFile.id) {
+    if (newFile && editItem && editItem !== newFile.id) {
       // 此时就说嘛我们本意新增一个文件，但是没有将新建文件操作完成就又去点击了其他文件项
       deleteFile(newFile.id)
     }
@@ -89,7 +89,12 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
               >
                 <FontAwesomeIcon icon={faEdit}></FontAwesomeIcon>
               </span>
-              <span className="col-1" onClick={() => deleteFile(file.id)}>
+              <span
+                className="col-1"
+                onClick={() => {
+                  deleteFile(file.id)
+                }}
+              >
                 <FontAwesomeIcon icon={faTrashAlt}></FontAwesomeIcon>
               </span>
             </>
@@ -102,6 +107,7 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
                 onChange={(ev) => {
                   setValue(ev.target.value)
                 }}
+                onClick={() => setEditItem(file.id)}
               />
 
               <span className="col-1" onClick={closeFn}>

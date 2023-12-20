@@ -48,18 +48,16 @@ let RightDiv = styled.div.attrs({
   }
 `
 function App() {
-  const [files, setFiles] = useState(initFiles) //代表所有文件信息
+  const [files, setFiles] = useState(mapArr(initFiles)) //代表所有文件信息
   const [activeId, setActiveId] = useState('') //当前正在编辑文件的id
   const [openIds, setOpenIds] = useState([]) //当前已经打开的文件信息 ids
   const [unSaveIds, setUnSaveIds] = useState([]) //当前未被保存的文件信息的 ids
   const [searchFiles, setSearchFiles] = useState([])
 
   // 打开的文件
-  const openFiles = openIds.map((openId) =>
-    files.find((item) => item.id === openId)
-  )
+  const openFiles = openIds.map((openId) => files[openId])
   // 计算正在编辑的文件信息
-  const activeFile = files.find((item) => item.id === activeId)
+  const activeFile = files[activeId]
 
   // // 计算当前列表需要展示的信息
   // const fileList = isSearch ? searchFiles : files
@@ -82,27 +80,25 @@ function App() {
     else setActiveId('')
   }
   // 04 当文件内容更新时候
-  const changeFile = (id, value) => {
+  const changeFile = (id, newValue) => {
     setUnSaveIds([...new Set([...unSaveIds, id])])
     // 某个内容更新之后我们需要生成新的files
-    const newFiles = files.map((file) => {
-      if (file.id === id) {
-        file.body = value
-      }
-      return file
-    })
-    setFiles(newFiles)
+    const newFile = { ...files[id], body: newValue }
+    setFiles({ ...files, [id]: newFile })
   }
   // 05 删除某个文件项
   const deleteItem = (id) => {
-    const newFiles = files.filter((item) => item.id !== id)
-    setFiles(newFiles)
+    let obj = { ...files }
+    delete obj[id]
+    setFiles(obj)
     // 如何当前要关闭的项目正在被打开，相应的也进行删除
     closeFile(id)
   }
   // 06 依据关键字搜索文件
   const searchfile = (keyWord) => {
-    const newFiles = files.filter((item) => item.title.includes(keyWord))
+    const newFiles = objToArr(files).filter((item) =>
+      item.title.includes(keyWord)
+    )
     setSearchFiles(newFiles)
   }
   useEffect(
@@ -115,14 +111,12 @@ function App() {
 
   // 07 重命名
   const reName = (id, newTitle) => {
-    const newFiles = files.map((file) => {
-      if (file.id === id) {
-        file.title = newTitle
-        file.isNew = false
-      }
-      return file
-    })
-    setFiles(newFiles)
+    const item = objToArr(files).find((item) => item.title === newTitle)
+    if (item) {
+      newTitle += '_copy'
+    }
+    const newFile = { ...files[id], title: newTitle, isNew: false }
+    setFiles({ ...files, [id]: newFile })
   }
 
   // 08 新建操作
@@ -135,8 +129,8 @@ function App() {
       body: '## 初始化内容',
       createTime: new Date().getTime(),
     }
-    let flag = files.find((file) => file.isNew)
-    !flag && setFiles([...files, newFile])
+    let flag = objToArr(files).find((file) => file.isNew)
+    !flag && setFiles({ ...files, [newId]: newFile })
   }
   return (
     <div className="App container-fluid g-0">
