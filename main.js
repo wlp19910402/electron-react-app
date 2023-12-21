@@ -1,11 +1,15 @@
 const { app, BrowserWindow } = require('electron')
 const remote = require('@electron/remote/main')
 const isDev = require('electron-is-dev')
+const Store = require('electron-store')
+
+Store.initRenderer()
 let mainWindow
 app
   .whenReady()
   .then(() => {
     remote.initialize() //子模块使用electron
+
     mainWindow = new BrowserWindow({
       x: 0,
       y: 0,
@@ -16,11 +20,16 @@ app
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        enableRemoteModule: true,
       },
     })
+
     const urlLocation = isDev ? 'http://localhost:3000/' : 'prodUrl'
     //注入页面内容
     mainWindow.loadURL(urlLocation)
+    //子模块使用electron
+    remote.enable(mainWindow.webContents)
+
     //页面加载完成后桌面应用启动
     mainWindow.on('ready-to-show', () => {
       mainWindow.show()
@@ -29,8 +38,7 @@ app
     mainWindow.on('close', () => {
       mainWindow = null
     })
-    //子模块使用electron
-    remote.enable(mainWindow.webContents)
+
     //开发打开控制台
     isDev && mainWindow.webContents.openDevTools()
   })

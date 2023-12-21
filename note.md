@@ -51,3 +51,9 @@ cnpm i react-simplemde-editor easymde --save
 ### 过滤数据
 将数据改成Map对象
 
+### 操作磁盘
+使用fs对本地磁盘文件数据进行增、删、改、查
+
+### 安装electron-store库 对本地文件进行读取 使得数据持久化
+cnpm i electron-store --save
+

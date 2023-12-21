@@ -39,7 +39,8 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
   // 键盘的事件操作
   useEffect(() => {
     if (enterPressed && editItem && value.trim()) {
-      saveFile(editItem, value)
+      const file = files.find((file) => file.id === editItem)
+      saveFile(editItem, value, file.isNew)
       closeFn()
     }
     if (escPressed && editItem) {

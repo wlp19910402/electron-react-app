@@ -9,9 +9,28 @@ import ButtonItem from './components/ButtonItem'
 import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import TabList from './components/TabList'
 import SimpleMDE from 'react-simplemde-editor'
+
 import 'easymde/dist/easymde.min.css'
-import { mapArr, objToArr } from './utils/helper'
-// 自定义左侧容器
+import {
+  mapArr,
+  objToArr,
+  readFile,
+  writeFile,
+  renameFile,
+  deleteFile,
+} from './utils/helper'
+const path = window.require('path')
+const { app } = window.require('@electron/remote')
+const Store = window.require('electron-store')
+const store = new Store()
+// // 设置数据
+// store.set('name', '拉钩教育')
+// // 获取数据
+// console.log(store.get('name'))
+// // 删除数据
+// store.delete('name')
+// console.log(store.get('name'))
+// // 自定义左侧容器
 let LeftDiv = styled.div.attrs({
   className: 'col-3 left-panel',
 })`
@@ -54,13 +73,14 @@ function App() {
   const [unSaveIds, setUnSaveIds] = useState([]) //当前未被保存的文件信息的 ids
   const [searchFiles, setSearchFiles] = useState([])
 
+  // 自定义一个当前磁盘存放文件的位置的路径
+  const savePath = app.getPath('desktop') + '/eletronData/'
+  console.log(app.getPath('userData'))
+
   // 打开的文件
   const openFiles = openIds.map((openId) => files[openId])
   // 计算正在编辑的文件信息
   const activeFile = files[activeId]
-
-  // // 计算当前列表需要展示的信息
-  // const fileList = isSearch ? searchFiles : files
 
   //01 点击左侧文件显示编辑页面
   const openItem = (id) => {
@@ -88,11 +108,22 @@ function App() {
   }
   // 05 删除某个文件项
   const deleteItem = (id) => {
-    let obj = { ...files }
-    delete obj[id]
-    setFiles(obj)
-    // 如何当前要关闭的项目正在被打开，相应的也进行删除
-    closeFile(id)
+    const file = files[id]
+    if (!file.isNew) {
+      deleteFile(path.join(savePath, `${files[id].title}.md`)).then(() => {
+        let obj = { ...files }
+        delete obj[id]
+        setFiles(obj)
+        // 如何当前要关闭的项目正在被打开，相应的也进行删除
+        closeFile(id)
+      })
+    } else {
+      let obj = { ...files }
+      delete obj[id]
+      setFiles(obj)
+      // 如何当前要关闭的项目正在被打开，相应的也进行删除
+      closeFile(id)
+    }
   }
   // 06 依据关键字搜索文件
   const searchfile = (keyWord) => {
@@ -110,13 +141,28 @@ function App() {
   )
 
   // 07 重命名
-  const reName = (id, newTitle) => {
+  const saveData = (id, newTitle, isNew) => {
     const item = objToArr(files).find((item) => item.title === newTitle)
     if (item) {
       newTitle += '_copy'
     }
     const newFile = { ...files[id], title: newTitle, isNew: false }
-    setFiles({ ...files, [id]: newFile })
+    if (isNew) {
+      // 执行创建
+      writeFile(path.join(savePath, `${newTitle}.md`), files[id].body).then(
+        () => {
+          setFiles({ ...files, [id]: newFile })
+        }
+      )
+    } else {
+      // 执行更新
+      renameFile(
+        path.join(savePath, `${files[id].title}.md`),
+        path.join(savePath, `${newTitle}.md`)
+      ).then(() => {
+        setFiles({ ...files, [id]: newFile })
+      })
+    }
   }
 
   // 08 新建操作
@@ -132,6 +178,15 @@ function App() {
     let flag = objToArr(files).find((file) => file.isNew)
     !flag && setFiles({ ...files, [newId]: newFile })
   }
+  // 09 点击保存文件内容
+  const saveCurrentFile = () => {
+    writeFile(
+      path.join(savePath, `${activeFile.title}.md`),
+      activeFile.body
+    ).then(() => {
+      setUnSaveIds(unSaveIds.filter((id) => id !== activeFile.id))
+    })
+  }
   return (
     <div className="App container-fluid g-0">
       <div className="row g-0">
@@ -141,7 +196,7 @@ function App() {
             files={searchFiles}
             editFile={openItem}
             deleteFile={deleteItem}
-            saveFile={reName}
+            saveFile={saveData}
           />
           <div className="btn-list">
             <ButtonItem title={'新增'} icon={faPlus} btnClick={createFile} />
@@ -153,6 +208,7 @@ function App() {
           </div>
         </LeftDiv>
         <RightDiv>
+          <button onClick={saveCurrentFile}>保存</button>
           {activeFile && (
             <>
               <TabList

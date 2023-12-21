@@ -32,7 +32,7 @@ const SearchFile = ({ title, onSearch }) => {
     // 当我们关闭搜索功能时候，可以给它提供一个空字符，这样就没有满足条件的搜索
     // 结果，此时就能将原来的列表数据重新展示出来
     onSearch('')
-    console.log('escPressed')
+    // console.log('escPressed')
   }
 
   useEffect(() => {
