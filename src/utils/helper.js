@@ -28,3 +28,20 @@ export const renameFile = (path, newPath) => {
 export const deleteFile = (path) => {
   return fs.unlink(path)
 }
+
+//
+export const getParantNode = (node, parentClassName) => {
+  let currentEle = node
+  while (currentEle !== null) {
+    // console.log(
+    //   currentEle.classList,
+    //   currentEle.classList.contains(parentClassName)
+    // )
+    // console.log('+++++++')
+    if (currentEle.classList.contains(parentClassName)) {
+      return currentEle
+    }
+    currentEle = currentEle.parentNode
+  }
+  return false
+}

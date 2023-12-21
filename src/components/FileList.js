@@ -9,10 +9,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import PropTypes from 'prop-types'
 import useKeyHandler from '../hooks/useKeyHandler'
-const { Menu, getCurrentWindow } = window.require('@electron/remote')
+import useContextMenu from '../hooks/useContextMenu'
+import { getParantNode } from '../utils/helper'
 //ul 标签
 let GroupUl = styled.ul.attrs({
-  className: 'list-group list-group-flush',
+  className: 'list-group list-group-flush menu-box',
 })`
   li {
     color: #fff;
@@ -31,34 +32,29 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
     setEditItem(false)
     setValue('')
   }
-  useEffect(() => {
-    // 定制一个菜单的选项
-    const contentMenuTmp = [
-      {
-        label: '重命名',
-        click() {
-          console.log('执行重命名')
-        },
+  // 定制一个菜单的选项
+  const contentMenuTmp = [
+    {
+      label: '重命名',
+      click() {
+        let retNode = getParantNode(currentEle.current, 'menu-item')
+        // console.log(retNode)
+        // console.log('执行重命名')
+        setEditItem(retNode.dataset.id)
+        setValue(retNode.dataset.title)
       },
-      {
-        label: '删除',
-        click() {
-          console.log('执行删除')
-        },
+    },
+    {
+      label: '删除',
+      click() {
+        let retNode = getParantNode(currentEle.current, 'menu-item')
+        deleteFile(retNode.dataset.id)
+        // console.log('执行删除')
       },
-    ]
-
-    // 创建menu
-    const menu = Menu.buildFromTemplate(contentMenuTmp)
-    // 自定义右键操作事件监听
-    const contextMenuHandle = (ev) => {
-      menu.popup({ window: getCurrentWindow() })
-    }
-    window.addEventListener('contextmenu', contextMenuHandle)
-    return () => {
-      window.removeEventListener('contextmenu', contextMenuHandle)
-    }
-  }, [])
+    },
+  ]
+  // 创建右键菜单
+  const currentEle = useContextMenu(contentMenuTmp, '.menu-box')
 
   // 键盘的事件操作
   useEffect(() => {
@@ -90,7 +86,12 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
   return (
     <GroupUl>
       {files.map((file) => (
-        <li className="list-group-item d-flex align-items-center" key={file.id}>
+        <li
+          className="list-group-item d-flex align-items-center menu-item"
+          key={file.id}
+          data-id={file.id}
+          data-title={file.title}
+        >
           {file.id !== editItem && !file.isNew && (
             <>
               <span className="col-1">
@@ -104,23 +105,6 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
                 }}
               >
                 {file.title}
-              </span>
-              <span
-                className="col-2"
-                onClick={() => {
-                  setEditItem(file.id)
-                  setValue(file.title)
-                }}
-              >
-                <FontAwesomeIcon icon={faEdit}></FontAwesomeIcon>
-              </span>
-              <span
-                className="col-1"
-                onClick={() => {
-                  deleteFile(file.id)
-                }}
-              >
-                <FontAwesomeIcon icon={faTrashAlt}></FontAwesomeIcon>
               </span>
             </>
           )}
