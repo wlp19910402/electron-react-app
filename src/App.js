@@ -165,8 +165,8 @@ function App() {
     if (item) {
       newTitle += '_copy'
     }
-    console.log(path.dirname(files[id].path))
-    console.log('======')
+    // console.log(path.dirname(files[id].path))
+    // console.log('======')
     const newPath = isNew
       ? path.join(savePath, `${newTitle}.md`)
       : path.join(path.dirname(files[id].path), `${newTitle}.md`)
@@ -186,8 +186,10 @@ function App() {
     } else {
       // 执行更新
       let oldPath = files[id].path
+      console.log(oldPath, newPath)
       renameFile(oldPath, newPath).then(() => {
         setFiles(newFiles)
+        saveInfoToStore(newFiles)
       })
     }
   }

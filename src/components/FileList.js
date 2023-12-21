@@ -8,8 +8,8 @@ import {
   faTimes,
 } from '@fortawesome/free-solid-svg-icons'
 import PropTypes from 'prop-types'
-import initFiles from '../utils/initFiles'
 import useKeyHandler from '../hooks/useKeyHandler'
+const { Menu, getCurrentWindow } = window.require('@electron/remote')
 //ul 标签
 let GroupUl = styled.ul.attrs({
   className: 'list-group list-group-flush',
@@ -30,12 +30,36 @@ const FileList = ({ files, editFile, saveFile, deleteFile }) => {
   const closeFn = () => {
     setEditItem(false)
     setValue('')
-
-    // const currentFile = files.find((file) => file.id === editItem)
-    // if (currentFile && currentFile.isNew) {
-    //   deleteFile(editItem)
-    // }
   }
+  useEffect(() => {
+    // 定制一个菜单的选项
+    const contentMenuTmp = [
+      {
+        label: '重命名',
+        click() {
+          console.log('执行重命名')
+        },
+      },
+      {
+        label: '删除',
+        click() {
+          console.log('执行删除')
+        },
+      },
+    ]
+
+    // 创建menu
+    const menu = Menu.buildFromTemplate(contentMenuTmp)
+    // 自定义右键操作事件监听
+    const contextMenuHandle = (ev) => {
+      menu.popup({ window: getCurrentWindow() })
+    }
+    window.addEventListener('contextmenu', contextMenuHandle)
+    return () => {
+      window.removeEventListener('contextmenu', contextMenuHandle)
+    }
+  }, [])
+
   // 键盘的事件操作
   useEffect(() => {
     if (enterPressed && editItem && value.trim()) {
@@ -126,9 +150,6 @@ FileList.prototype = {
   editFile: PropTypes.func.isRequired,
   deleteFile: PropTypes.func.isRequired,
   saveFile: PropTypes.func.isRequired,
-}
-FileList.defaultProps = {
-  files: initFiles,
 }
 
 export default FileList
