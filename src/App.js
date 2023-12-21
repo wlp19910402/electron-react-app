@@ -4,12 +4,10 @@ import styled from 'styled-components'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import SearchFile from './components/SearchFiles'
 import FileList from './components/FileList'
-import initFiles from './utils/initFiles'
 import ButtonItem from './components/ButtonItem'
 import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import TabList from './components/TabList'
 import SimpleMDE from 'react-simplemde-editor'
-
 import 'easymde/dist/easymde.min.css'
 import {
   mapArr,
@@ -20,7 +18,7 @@ import {
   deleteFile,
 } from './utils/helper'
 const path = window.require('path')
-const { app } = window.require('@electron/remote')
+const { app, dialog } = window.require('@electron/remote')
 const Store = window.require('electron-store')
 const fileStore = new Store({ name: 'filesInfo' })
 // 定义方法实现具体属性的持久化存储
@@ -77,7 +75,9 @@ function App() {
   const [searchFiles, setSearchFiles] = useState([])
 
   // 自定义一个当前磁盘存放文件的位置的路径
-  const savePath = app.getPath('desktop') + '/eletronData/'
+  const savePath =
+    app.getPath('home') +
+    '/workspace/szbStudyProject/electron-react-app/localFile'
   console.log(app.getPath('userData'))
 
   // 打开的文件
@@ -129,7 +129,7 @@ function App() {
     const file = files[id]
     let obj = { ...files }
     if (!file.isNew) {
-      deleteFile(path.join(savePath, `${files[id].title}.md`)).then(() => {
+      deleteFile(file.path).then(() => {
         delete obj[id]
         setFiles(obj)
         saveInfoToStore(obj)
@@ -165,7 +165,11 @@ function App() {
     if (item) {
       newTitle += '_copy'
     }
-    const newPath = path.join(savePath, `${newTitle}.md`)
+    console.log(path.dirname(files[id].path))
+    console.log('======')
+    const newPath = isNew
+      ? path.join(savePath, `${newTitle}.md`)
+      : path.join(path.dirname(files[id].path), `${newTitle}.md`)
     const newFile = {
       ...files[id],
       title: newTitle,
@@ -181,7 +185,7 @@ function App() {
       })
     } else {
       // 执行更新
-      let oldPath = path.join(savePath, `${files[id].title}.md`)
+      let oldPath = files[id].path
       renameFile(oldPath, newPath).then(() => {
         setFiles(newFiles)
       })
@@ -203,12 +207,60 @@ function App() {
   }
   // 09 点击保存文件内容
   const saveCurrentFile = () => {
-    writeFile(
-      path.join(savePath, `${activeFile.title}.md`),
-      activeFile.body
-    ).then(() => {
+    writeFile(activeFile.path, activeFile.body).then(() => {
       setUnSaveIds(unSaveIds.filter((id) => id !== activeFile.id))
     })
+  }
+
+  // 10 执行外部md，导入数据
+  const importFile = () => {
+    dialog
+      .showOpenDialog({
+        defaultPath: __dirname,
+        buttonLabel: '请选择',
+        title: '选择md文件',
+        properties: ['openFile', 'multiSelections'],
+        filters: [
+          { name: 'md文档', extensions: ['md'] },
+          { name: '其他类型', extensions: ['js', 'json', 'html'] },
+        ],
+      })
+      .then((ret) => {
+        let paths = ret.filePaths
+        // console.log(ret.filePaths)
+        if (paths.length) {
+          // 判断当前路径们是否已经存在files中，如果已经存在则无需执行导入操作
+          const validPaths = paths.filter((filePath) => {
+            // 判断当前path是否已经存在过了
+            const existed = Object.values(files).find(
+              (file) => file.path === filePath
+            )
+            return !existed
+          })
+          // 将上述的路径信息组装成files格式
+          const packageData = validPaths.map((filePath) => ({
+            id: v4(),
+            title: path.basename(filePath, '.md'),
+            path: filePath,
+          }))
+          // 将上述的数据格式处理未files所需要的
+          let newFiles = { ...files, ...mapArr(packageData) }
+          // 更新数据，重新渲染
+          setFiles(newFiles)
+
+          // 成功导入提示
+          if (packageData.length) {
+            saveInfoToStore(newFiles)
+            dialog.showMessageBox({
+              title: '导入md文档',
+              type: 'info',
+              message: '文件导入成功',
+            })
+          }
+        } else {
+          console.log('未选择文件导入')
+        }
+      })
   }
   return (
     <div className="App container-fluid g-0">
@@ -226,7 +278,7 @@ function App() {
             <ButtonItem
               title={'导入'}
               icon={faFileImport}
-              btnClick={createFile}
+              btnClick={importFile}
             />
           </div>
         </LeftDiv>
