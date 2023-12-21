@@ -17,8 +17,10 @@ import {
   renameFile,
   deleteFile,
 } from './utils/helper'
+import useIpcRenderer from './hooks/useIpcRenderer'
 const path = window.require('path')
 const { app, dialog } = window.require('@electron/remote')
+const { ipcRenderer } = window.require('electron')
 const Store = window.require('electron-store')
 const fileStore = new Store({ name: 'filesInfo' })
 // 定义方法实现具体属性的持久化存储
@@ -119,10 +121,12 @@ function App() {
   }
   // 04 当文件内容更新时候
   const changeFile = (id, newValue) => {
-    setUnSaveIds([...new Set([...unSaveIds, id])])
-    // 某个内容更新之后我们需要生成新的files
-    const newFile = { ...files[id], body: newValue }
-    setFiles({ ...files, [id]: newFile })
+    if (newValue !== files[id].body) {
+      setUnSaveIds([...new Set([...unSaveIds, id])])
+      // 某个内容更新之后我们需要生成新的files
+      const newFile = { ...files[id], body: newValue }
+      setFiles({ ...files, [id]: newFile })
+    }
   }
   // 05 删除某个文件项
   const deleteItem = (id) => {
@@ -209,9 +213,11 @@ function App() {
   }
   // 09 点击保存文件内容
   const saveCurrentFile = () => {
-    writeFile(activeFile.path, activeFile.body).then(() => {
-      setUnSaveIds(unSaveIds.filter((id) => id !== activeFile.id))
-    })
+    if (activeFile && activeFile.path) {
+      writeFile(activeFile.path, activeFile.body).then(() => {
+        setUnSaveIds(unSaveIds.filter((id) => id !== activeFile.id))
+      })
+    }
   }
 
   // 10 执行外部md，导入数据
@@ -264,6 +270,12 @@ function App() {
         }
       })
   }
+  // 实现主进程与渲染进程的事件通信
+  useIpcRenderer({
+    'execute-create-file': createFile,
+    'execute-import-file': importFile,
+    'execute-save-file': saveCurrentFile,
+  })
   return (
     <div className="App container-fluid g-0">
       <div className="row g-0">
@@ -275,17 +287,17 @@ function App() {
             deleteFile={deleteItem}
             saveFile={saveData}
           />
-          <div className="btn-list">
+          {/* <div className="btn-list">
             <ButtonItem title={'新增'} icon={faPlus} btnClick={createFile} />
             <ButtonItem
               title={'导入'}
               icon={faFileImport}
               btnClick={importFile}
             />
-          </div>
+          </div> */}
         </LeftDiv>
         <RightDiv>
-          <button onClick={saveCurrentFile}>保存</button>
+          {/* <button onClick={saveCurrentFile}>保存</button> */}
           {activeFile && (
             <>
               <TabList

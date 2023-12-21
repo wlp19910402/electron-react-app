@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTimes, faSearch } from '@fortawesome/free-solid-svg-icons'
 import PropTypes from 'prop-types'
 import useKeyHandler from '../hooks/useKeyHandler'
+import useIpcRenderer from '../hooks/useIpcRenderer'
 // 自定义搜索区域的div
 let SearchDiv = styled.div.attrs({
   className: 'd-flex align-center justify-content-between',
@@ -67,19 +68,25 @@ const SearchFile = ({ title, onSearch }) => {
       oInput.current.focus()
     }
   }, [searchActive])
+
+  useIpcRenderer({
+    'execute-search-file': () => {
+      setSearchActive(true)
+    },
+  })
   return (
     <Fragment>
       {!searchActive && (
         <>
           <SearchDiv>
             <span>{title}</span>
-            <span
+            {/* <span
               onClick={() => {
                 setSearchActive(true)
               }}
             >
               <FontAwesomeIcon icon={faSearch}></FontAwesomeIcon>
-            </span>
+            </span> */}
           </SearchDiv>
         </>
       )}
