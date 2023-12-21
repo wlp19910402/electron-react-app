@@ -22,14 +22,17 @@ import {
 const path = window.require('path')
 const { app } = window.require('@electron/remote')
 const Store = window.require('electron-store')
-const store = new Store()
-// // 设置数据
-// store.set('name', '拉钩教育')
-// // 获取数据
-// console.log(store.get('name'))
-// // 删除数据
-// store.delete('name')
-// console.log(store.get('name'))
+const fileStore = new Store({ name: 'filesInfo' })
+// 定义方法实现具体属性的持久化存储
+const saveInfoToStore = (files) => {
+  const storeObj = objToArr(files).reduce((ret, file) => {
+    const { id, title, createTime, path } = file
+    ret[id] = { id, path, title, createTime }
+    return ret
+  }, {})
+  fileStore.set('files', storeObj)
+}
+
 // // 自定义左侧容器
 let LeftDiv = styled.div.attrs({
   className: 'col-3 left-panel',
@@ -67,7 +70,7 @@ let RightDiv = styled.div.attrs({
   }
 `
 function App() {
-  const [files, setFiles] = useState(mapArr(initFiles)) //代表所有文件信息
+  const [files, setFiles] = useState(fileStore.get('files') || {}) //代表所有文件信息
   const [activeId, setActiveId] = useState('') //当前正在编辑文件的id
   const [openIds, setOpenIds] = useState([]) //当前已经打开的文件信息 ids
   const [unSaveIds, setUnSaveIds] = useState([]) //当前未被保存的文件信息的 ids
@@ -84,8 +87,23 @@ function App() {
 
   //01 点击左侧文件显示编辑页面
   const openItem = (id) => {
-    setOpenIds([...new Set([...openIds, id])])
     setActiveId(id)
+    // 点击某个文件项时读取里面的内容显示
+    const currentFile = files[id]
+    if (!currentFile.isLoaded) {
+      readFile(currentFile.path)
+        .then((data) => {
+          const newFile = { ...currentFile, body: data, isLoaded: true }
+          setFiles({ ...files, [id]: newFile })
+        })
+        .catch(() => {
+          // 文件可能被删除了，读取不到
+          // let obj = { ...files }
+          // delete obj[id]
+          // saveInfoToStore(obj)
+        })
+    }
+    setOpenIds([...new Set([...openIds, id])])
   }
   // 02 点击某个选项时切换当前状态
   const changeActive = (id) => {
@@ -109,18 +127,19 @@ function App() {
   // 05 删除某个文件项
   const deleteItem = (id) => {
     const file = files[id]
+    let obj = { ...files }
     if (!file.isNew) {
       deleteFile(path.join(savePath, `${files[id].title}.md`)).then(() => {
-        let obj = { ...files }
         delete obj[id]
         setFiles(obj)
+        saveInfoToStore(obj)
         // 如何当前要关闭的项目正在被打开，相应的也进行删除
         closeFile(id)
       })
     } else {
-      let obj = { ...files }
       delete obj[id]
       setFiles(obj)
+      saveInfoToStore(obj)
       // 如何当前要关闭的项目正在被打开，相应的也进行删除
       closeFile(id)
     }
@@ -146,21 +165,25 @@ function App() {
     if (item) {
       newTitle += '_copy'
     }
-    const newFile = { ...files[id], title: newTitle, isNew: false }
+    const newPath = path.join(savePath, `${newTitle}.md`)
+    const newFile = {
+      ...files[id],
+      title: newTitle,
+      isNew: false,
+      path: newPath,
+    }
+    const newFiles = { ...files, [id]: newFile }
     if (isNew) {
       // 执行创建
-      writeFile(path.join(savePath, `${newTitle}.md`), files[id].body).then(
-        () => {
-          setFiles({ ...files, [id]: newFile })
-        }
-      )
+      writeFile(newPath, files[id].body).then(() => {
+        setFiles(newFiles)
+        saveInfoToStore(newFiles)
+      })
     } else {
       // 执行更新
-      renameFile(
-        path.join(savePath, `${files[id].title}.md`),
-        path.join(savePath, `${newTitle}.md`)
-      ).then(() => {
-        setFiles({ ...files, [id]: newFile })
+      let oldPath = path.join(savePath, `${files[id].title}.md`)
+      renameFile(oldPath, newPath).then(() => {
+        setFiles(newFiles)
       })
     }
   }

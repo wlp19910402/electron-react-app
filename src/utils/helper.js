@@ -1,5 +1,4 @@
 const fs = window.require('fs').promises
-console.log(window)
 
 // {1:[],2:[]}
 export const mapArr = (arr) => {
