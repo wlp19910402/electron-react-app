@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import PropTypes from 'prop-types'
+// import PropTypes from 'prop-types'
 // import useKeyHandler from '../hooks/useKeyHandler'
 
 // 自定义p标签模拟按钮操作

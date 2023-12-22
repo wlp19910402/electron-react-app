@@ -4,6 +4,7 @@
   "private": true,
   "main": "main.js",
   "dependencies": {
+    "@electron/remote": "^2.1.1",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
@@ -14,6 +15,7 @@
     "classnames": "^2.3.2",
     "easymde": "^2.18.0",
     "electron": "^28.0.0",
+    "electron-is-dev": "^2.0.0",
     "electron-store": "^8.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -28,7 +30,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev": "concurrently \"cross-env BROWSER=none npm start\" \" wait-on http://localhost:3000 && electron .\""
+    "dev": "concurrently \"cross-env BROWSER=none npm start\" \" wait-on http://localhost:3000 && electron .\"",
+    "package:mac": "electron-packager . ElectronBuild --platform=darwin --unsafe-perm=true --allow-root --electron-version=28.0.0 -no-sandbox --arch=x64 --download.mirrorOptions.mirror=https://npm.taobao.org/mirrors/electron/ --asar --app-version=1.0.0 --build-version=1.0.0 --out=ElectronBuild --overwrite --no-package-manager --ignore='(.git)' --icon=favicon.ico",
+    "package:linux": "electron-packager . ElectronBuild --platform=linux --unsafe-perm=true --allow-root --electron-version=28.0.0 -no-sandbox --arch=x64 --download.mirrorOptions.mirror=https://npm.taobao.org/mirrors/electron/ --asar --app-version=1.0.0 --build-version=1.0.0 --out=ElectronBuild --overwrite --no-package-manager --ignore='(.git)' --icon=favicon.ico"
   },
   "eslintConfig": {
     "extends": [
@@ -49,11 +53,10 @@
     ]
   },
   "devDependencies": {
-    "@electron/remote": "^2.1.1",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^28.0.0",
-    "electron-is-dev": "^2.0.0",
+    "electron-packager": "^17.1.2",
     "fs": "^0.0.1-security",
     "prop-types": "^15.8.1",
     "wait-on": "^7.2.0"

@@ -25,7 +25,9 @@ app
       },
     })
 
-    const urlLocation = isDev ? 'http://localhost:3000/' : 'prodUrl'
+    const urlLocation = isDev
+      ? 'http://localhost:3000/'
+      : 'http://localhost:3000/'
     //注入页面内容
     mainWindow.loadURL(urlLocation)
     //子模块使用electron

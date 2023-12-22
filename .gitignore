@@ -10,6 +10,7 @@
 
 # production
 /build
+/ElectronBuild
 
 # misc
 .DS_Store

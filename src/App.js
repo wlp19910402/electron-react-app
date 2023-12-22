@@ -4,8 +4,8 @@ import styled from 'styled-components'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import SearchFile from './components/SearchFiles'
 import FileList from './components/FileList'
-import ButtonItem from './components/ButtonItem'
-import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
+// import ButtonItem from './components/ButtonItem'
+// import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import TabList from './components/TabList'
 import SimpleMDE from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
@@ -20,11 +20,12 @@ import {
 import useIpcRenderer from './hooks/useIpcRenderer'
 const path = window.require('path')
 const { app, dialog } = window.require('@electron/remote')
-const { ipcRenderer } = window.require('electron')
+// const { ipcRenderer } = window.require('electron')
 const Store = window.require('electron-store')
 const fileStore = new Store({ name: 'filesInfo' })
 // 定义方法实现具体属性的持久化存储
 const saveInfoToStore = (files) => {
+  console.log('2222', files)
   const storeObj = objToArr(files).reduce((ret, file) => {
     const { id, title, createTime, path } = file
     ret[id] = { id, path, title, createTime }
@@ -80,7 +81,7 @@ function App() {
   const savePath =
     app.getPath('home') +
     '/workspace/szbStudyProject/electron-react-app/localFile'
-  console.log(app.getPath('userData'))
+  console.log(app.getPath('home'))
 
   // 打开的文件
   const openFiles = openIds.map((openId) => files[openId])
@@ -157,7 +158,7 @@ function App() {
   }
   useEffect(
     () => {
-      searchfile('')
+      if (files) searchfile('')
     },
     [files],
     { deep: true }
@@ -200,6 +201,7 @@ function App() {
 
   // 08 新建操作
   const createFile = () => {
+    console.log('@222', files)
     const newId = v4()
     let newFile = {
       id: newId,
@@ -208,6 +210,7 @@ function App() {
       body: '## 初始化内容',
       createTime: new Date().getTime(),
     }
+
     let flag = objToArr(files).find((file) => file.isNew)
     !flag && setFiles({ ...files, [newId]: newFile })
   }

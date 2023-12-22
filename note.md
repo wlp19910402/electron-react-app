@@ -57,3 +57,9 @@ cnpm i react-simplemde-editor easymde --save
 ### 安装electron-store库 对本地文件进行读取 使得数据持久化
 cnpm i electron-store --save
 
+
+"build":"electron-packager ./ HelloWorld --platform=win32 --arch=x64 --out ./outApp --overwrite --icon=./favicon.ico"
+
+### 打包 安装electron-package包
+先启动或打包完前端项目 
+在去执行npm run package:mac 这是在mac上安装应用 记得注意地址哦
